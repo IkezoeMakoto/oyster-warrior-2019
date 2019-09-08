@@ -1017,16 +1017,18 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 
 	tx := dbx.MustBegin()
 	items := []Item{}
+	users := map[int64]UserSimple{}
 	if itemID > 0 && createdAt > 0 {
 		// ページネーションをしたときに必要なデータを取得
 		// paging
-		err := tx.Select(&items,
-			"SELECT * " +
+		rows, err := tx.Queryx("SELECT items.id as item_id,items.seller_id,items.buyer_id,items.status,items.name,items.price,items.description,items.image_name,items.category_id,items.created_at as item_created_at,items.updated_at," +
+			"users.id as user_id, users.account_name, users.num_sell_items " +
 			"FROM `items` " +
-			"WHERE (`seller_id` = ? OR `buyer_id` = ?) " +
-			"AND `status` IN (?,?,?,?,?) " +
-			"AND (`created_at` < ?  OR (`created_at` <= ? AND `id` < ?)) " +
-			"ORDER BY `created_at` DESC, `id` " +
+			"INNER JOIN `users` on `items`.seller_id = `users`.id " +
+			"WHERE (`items`.seller_id = ? OR `items`.buyer_id = ?) " +
+			"AND `items`.status IN (?,?,?,?,?) " +
+			"AND (`items`.created_at < ?  OR (`items`.created_at <= ? AND `items`.id < ?)) " +
+			"ORDER BY `items`.created_at DESC, `items`.id " +
 			"DESC LIMIT ?",
 			user.ID,
 			user.ID,
@@ -1046,15 +1048,30 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			tx.Rollback()
 			return
 		}
+		for rows.Next() {
+			var i Item
+			var u UserSimple
+			err := rows.Scan(&i.ID, &i.SellerID, &i.BuyerID, &i.Status, &i.Name, &i.Price, &i.Description, &i.ImageName, &i.CategoryID, &i.CreatedAt, &i.UpdatedAt,
+				&u.ID, &u.AccountName, &u.NumSellItems)
+			if err != nil {
+				log.Print(err)
+				outputErrorMsg(w, http.StatusInternalServerError, "db error")
+				tx.Rollback()
+				return
+			}
+			items = append(items, i)
+			users[u.ID] = u
+		}
 	} else {
 		// 初期ページに表示するときに必要なデータを取得
 		// 1st page
-		err := tx.Select(&items,
-			"SELECT * " +
+		rows, err := tx.Queryx("SELECT items.id as item_id,items.seller_id,items.buyer_id,items.status,items.name,items.price,items.description,items.image_name,items.category_id,items.created_at as item_created_at,items.updated_at," +
+			"users.id as user_id, users.account_name, users.num_sell_items " +
 			"FROM `items` " +
-			"WHERE (`seller_id` = ? OR `buyer_id` = ?) " +
-			"AND `status` IN (?,?,?,?,?) " +
-			"ORDER BY `created_at` DESC, `id` DESC " +
+			"INNER JOIN `users` on `items`.seller_id = `users`.id " +
+			"WHERE (`items`.seller_id = ? OR `items`.buyer_id = ?) " +
+			"AND `items`.status IN (?,?,?,?,?) " +
+			"ORDER BY `items`.created_at DESC, `items`.id DESC " +
 			"LIMIT ?",
 			user.ID,
 			user.ID,
@@ -1067,21 +1084,31 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		)
 		if err != nil {
 			log.Print(err)
-			outputErrorMsg(w, http.StatusInternalServerError, "db error")
+			outputErrorMsg(w, http.StatusBadRequest, "item error")
 			tx.Rollback()
 			return
+		}
+		for rows.Next() {
+			var i Item
+			var u UserSimple
+			err := rows.Scan(&i.ID, &i.SellerID, &i.BuyerID, &i.Status, &i.Name, &i.Price, &i.Description, &i.ImageName, &i.CategoryID, &i.CreatedAt, &i.UpdatedAt,
+				&u.ID, &u.AccountName, &u.NumSellItems)
+			if err != nil {
+				log.Print(err)
+				outputErrorMsg(w, http.StatusInternalServerError, "db error")
+				tx.Rollback()
+				return
+			}
+			items = append(items, i)
+			users[u.ID] = u
 		}
 	}
 
 	itemDetails := []ItemDetail{}
 	for _, item := range items {
 		// アイテム（イス）の売り手の情報を取得
-		seller, err := getUserSimpleByID(tx, item.SellerID)
-		if err != nil {
-			outputErrorMsg(w, http.StatusNotFound, "seller not found")
-			tx.Rollback()
-			return
-		}
+		seller := users[item.SellerID]
+
 		// アイテム（イス）のカテゴリ情報を取得
 		category, err := getCategoryByID(tx, item.CategoryID)
 		if err != nil {

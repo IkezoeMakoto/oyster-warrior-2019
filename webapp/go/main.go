@@ -2376,8 +2376,8 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 
 	//err = bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
 	h := md5.New()
-	hash,err := fmt.Printf("%x", h.Sum([]byte(password)))
-	pass,err2 :=fmt.Printf("%x", u.HashedPassword)
+	hash := fmt.Sprintf("%x", h.Sum([]byte(password)))
+	pass :=fmt.Sprintf("%x", u.HashedPassword)
 
 	log.Print("前")
 	log.Print(string(hash))
@@ -2394,12 +2394,12 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != nil || err2 != nil{
-		log.Print(err)
-
-		outputErrorMsg(w, http.StatusInternalServerError, "crypt error")
-		return
-	}
+	// if err != nil || err2 != nil{
+	// 	log.Print(err)
+	//
+	// 	outputErrorMsg(w, http.StatusInternalServerError, "crypt error")
+	// 	return
+	// }
 
 	session := getSession(r)
 

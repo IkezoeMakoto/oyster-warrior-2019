@@ -1359,6 +1359,7 @@ func getQRCode(w http.ResponseWriter, r *http.Request) {
 func postBuy(w http.ResponseWriter, r *http.Request) {
 	rb := reqBuy{}
 
+	// バリデーション
 	err := json.NewDecoder(r.Body).Decode(&rb)
 	if err != nil {
 		outputErrorMsg(w, http.StatusBadRequest, "json decode error")
@@ -1371,15 +1372,17 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 買い手の情報を取得する
 	buyer, errCode, errMsg := getUser(r)
 	if errMsg != "" {
 		outputErrorMsg(w, errCode, errMsg)
 		return
 	}
 
+	// トランザクション、排他制御開始
 	tx := dbx.MustBegin()
-
 	targetItem := Item{}
+	// バリデーション
 	err = tx.Get(&targetItem, "SELECT * FROM `items` WHERE `id` = ? FOR UPDATE", rb.ItemID)
 	if err == sql.ErrNoRows {
 		outputErrorMsg(w, http.StatusNotFound, "item not found")
@@ -1393,19 +1396,18 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		tx.Rollback()
 		return
 	}
-
 	if targetItem.Status != ItemStatusOnSale {
 		outputErrorMsg(w, http.StatusForbidden, "item is not for sale")
 		tx.Rollback()
 		return
 	}
-
 	if targetItem.SellerID == buyer.ID {
 		outputErrorMsg(w, http.StatusForbidden, "自分の商品は買えません")
 		tx.Rollback()
 		return
 	}
 
+	// 売り手の情報を取得
 	seller := User{}
 	err = tx.Get(&seller, "SELECT * FROM `users` WHERE `id` = ? FOR UPDATE", targetItem.SellerID)
 	if err == sql.ErrNoRows {
@@ -1421,6 +1423,7 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// アイテム（イス）のカテゴリ情報を取得
 	category, err := getCategoryByID(tx, targetItem.CategoryID)
 	if err != nil {
 		log.Print(err)
@@ -1430,6 +1433,7 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 取引したので、取引情報を登録
 	result, err := tx.Exec("INSERT INTO `transaction_evidences` (`seller_id`, `buyer_id`, `status`, `item_id`, `item_name`, `item_price`, `item_description`,`item_category_id`,`item_root_category_id`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		targetItem.SellerID,
 		buyer.ID,
@@ -1448,7 +1452,6 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		tx.Rollback()
 		return
 	}
-
 	transactionEvidenceID, err := result.LastInsertId()
 	if err != nil {
 		log.Print(err)
@@ -1458,6 +1461,7 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 取引したので、アイテム（イス）情報も更新
 	_, err = tx.Exec("UPDATE `items` SET `buyer_id` = ?, `status` = ?, `updated_at` = ? WHERE `id` = ?",
 		buyer.ID,
 		ItemStatusTrading,
@@ -1472,6 +1476,7 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 外部APIと連携して、配送情報を取得
 	scr, err := APIShipmentCreate(getShipmentServiceURL(), &APIShipmentCreateReq{
 		ToAddress:   buyer.Address,
 		ToName:      buyer.AccountName,
@@ -1485,7 +1490,6 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-
 	pstr, err := APIPaymentToken(getPaymentServiceURL(), &APIPaymentServiceTokenReq{
 		ShopID: PaymentServiceIsucariShopID,
 		Token:  rb.Token,
@@ -1499,25 +1503,23 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		tx.Rollback()
 		return
 	}
-
 	if pstr.Status == "invalid" {
 		outputErrorMsg(w, http.StatusBadRequest, "カード情報に誤りがあります")
 		tx.Rollback()
 		return
 	}
-
 	if pstr.Status == "fail" {
 		outputErrorMsg(w, http.StatusBadRequest, "カードの残高が足りません")
 		tx.Rollback()
 		return
 	}
-
 	if pstr.Status != "ok" {
 		outputErrorMsg(w, http.StatusBadRequest, "想定外のエラー")
 		tx.Rollback()
 		return
 	}
 
+	// 配送情報を登録
 	_, err = tx.Exec("INSERT INTO `shippings` (`transaction_evidence_id`, `status`, `item_name`, `item_id`, `reserve_id`, `reserve_time`, `to_address`, `to_name`, `from_address`, `from_name`, `img_binary`) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
 		transactionEvidenceID,
 		ShippingsStatusInitial,
@@ -1976,6 +1978,7 @@ func postComplete(w http.ResponseWriter, r *http.Request) {
 }
 
 func postSell(w http.ResponseWriter, r *http.Request) {
+	// バリデーション
 	csrfToken := r.FormValue("csrf_token")
 	name := r.FormValue("name")
 	description := r.FormValue("description")
@@ -1989,36 +1992,32 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer f.Close()
-
 	if csrfToken != getCSRFToken(r) {
 		outputErrorMsg(w, http.StatusUnprocessableEntity, "csrf token error")
 		return
 	}
-
 	categoryID, err := strconv.Atoi(categoryIDStr)
 	if err != nil || categoryID < 0 {
 		outputErrorMsg(w, http.StatusBadRequest, "category id error")
 		return
 	}
-
 	price, err := strconv.Atoi(priceStr)
 	if err != nil {
 		outputErrorMsg(w, http.StatusBadRequest, "price error")
 		return
 	}
-
 	if name == "" || description == "" || price == 0 || categoryID == 0 {
 		outputErrorMsg(w, http.StatusBadRequest, "all parameters are required")
 
 		return
 	}
-
 	if price < ItemMinPrice || price > ItemMaxPrice {
 		outputErrorMsg(w, http.StatusBadRequest, ItemPriceErrMsg)
 
 		return
 	}
 
+	// アイテム（イス）のカテゴリ情報を取得
 	category, err := getCategoryByID(dbx, categoryID)
 	if err != nil || category.ParentID == 0 {
 		log.Print(categoryID, category)
@@ -2026,30 +2025,28 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// ユーザ（売り手）の情報を習得
 	user, errCode, errMsg := getUser(r)
 	if errMsg != "" {
 		outputErrorMsg(w, errCode, errMsg)
 		return
 	}
 
+	// アイテム（イス）の画像を取得
 	img, err := ioutil.ReadAll(f)
 	if err != nil {
 		log.Print(err)
 		outputErrorMsg(w, http.StatusInternalServerError, "image error")
 		return
 	}
-
 	ext := filepath.Ext(header.Filename)
-
 	if !(ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
 		outputErrorMsg(w, http.StatusBadRequest, "unsupported image format error")
 		return
 	}
-
 	if ext == ".jpeg" {
 		ext = ".jpg"
 	}
-
 	imgName := fmt.Sprintf("%s%s", secureRandomStr(16), ext)
 	err = ioutil.WriteFile(fmt.Sprintf("../public/upload/%s", imgName), img, 0644)
 	if err != nil {
@@ -2058,10 +2055,11 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// トランザクション、排他制御開始
 	tx := dbx.MustBegin()
-
 	seller := User{}
 	err = tx.Get(&seller, "SELECT * FROM `users` WHERE `id` = ? FOR UPDATE", user.ID)
+	// バリデーション
 	if err == sql.ErrNoRows {
 		outputErrorMsg(w, http.StatusNotFound, "user not found")
 		tx.Rollback()
@@ -2074,6 +2072,7 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// アイテム情報を登録
 	result, err := tx.Exec("INSERT INTO `items` (`seller_id`, `status`, `name`, `price`, `description`,`image_name`,`category_id`) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		seller.ID,
 		ItemStatusOnSale,
@@ -2089,7 +2088,6 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		outputErrorMsg(w, http.StatusInternalServerError, "db error")
 		return
 	}
-
 	itemID, err := result.LastInsertId()
 	if err != nil {
 		log.Print(err)
@@ -2098,6 +2096,7 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// ユーザ（売り手）情報に、ユーザが売ったアイテム（イス）の数を更新
 	now := time.Now()
 	_, err = tx.Exec("UPDATE `users` SET `num_sell_items`=?, `last_bump`=? WHERE `id`=?",
 		seller.NumSellItems+1,

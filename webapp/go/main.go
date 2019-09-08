@@ -476,7 +476,7 @@ func main() {
 	// ユーザ情報設定画面
 	mux.HandleFunc(pat.Get("/users/setting"), getIndex)
 	// Assets
-	mux.Handle(pat.Get("/*"), http.FileServer(http.Dir("../public")))
+	//mux.Handle(pat.Get("/*"), http.FileServer(http.Dir("../public")))
 	log.Fatal(http.ListenAndServe(":8000", mux))
 }
 

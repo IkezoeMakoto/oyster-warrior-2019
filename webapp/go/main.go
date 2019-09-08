@@ -279,6 +279,7 @@ func init() {
 }
 
 func main() {
+
 	host := os.Getenv("MYSQL_HOST")
 	if host == "" {
 		host = "127.0.0.1"

@@ -2379,7 +2379,13 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 	hash,err := fmt.Printf("%x", h.Sum([]byte(password)))
 	pass,err2 :=fmt.Printf("%x", u.HashedPassword)
 
-	fmt.Println("前")
+	log.Fatalf("前")
+	log.Fatalf(string(hash))
+	log.Fatalf(string(pass))
+
+	log.Fatal(hash)
+	log.Fatal(pass)
+
 	fmt.Println(hash)
 	fmt.Println(pass)
 

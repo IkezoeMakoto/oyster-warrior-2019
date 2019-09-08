@@ -1028,7 +1028,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			"WHERE (`items`.seller_id = ? OR `items`.buyer_id = ?) " +
 			"AND `items`.status IN (?,?,?,?,?) " +
 			"AND (`items`.created_at < ?  OR (`items`.created_at <= ? AND `items`.id < ?)) " +
-			"ORDER BY `items`.created_at DESC, `items`.id" +
+			"ORDER BY `items`.created_at DESC, `items`.id " +
 			"DESC LIMIT ?",
 			user.ID,
 			user.ID,

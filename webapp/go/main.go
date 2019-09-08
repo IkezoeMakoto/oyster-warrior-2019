@@ -1025,10 +1025,10 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			"users.id as user_id, users.account_name, users.num_sell_items " +
 			"FROM `items` " +
 			"INNER JOIN `users` on `items`.seller_id = `users`.id " +
-			"WHERE (`seller_id` = ? OR `buyer_id` = ?) " +
-			"AND `status` IN (?,?,?,?,?) " +
-			"AND (`created_at` < ?  OR (`created_at` <= ? AND `id` < ?)) " +
-			"ORDER BY `created_at` DESC, `id` " +
+			"WHERE (`items`.seller_id = ? OR `items`.buyer_id = ?) " +
+			"AND `items`.status IN (?,?,?,?,?) " +
+			"AND (`items`.created_at < ?  OR (`items`.created_at <= ? AND `items`.id < ?)) " +
+			"ORDER BY `items.created_at` DESC, `id` " +
 			"DESC LIMIT ?",
 			user.ID,
 			user.ID,
@@ -1069,9 +1069,9 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			"users.id as user_id, users.account_name, users.num_sell_items " +
 			"FROM `items` " +
 			"INNER JOIN `users` on `items`.seller_id = `users`.id " +
-			"WHERE (`seller_id` = ? OR `buyer_id` = ?) " +
-			"AND `status` IN (?,?,?,?,?) " +
-			"ORDER BY `created_at` DESC, `id` DESC " +
+			"WHERE (`items`.seller_id = ? OR `items`.buyer_id = ?) " +
+			"AND `items`.status IN (?,?,?,?,?) " +
+			"ORDER BY `items`.created_at DESC, `items.id` DESC " +
 			"LIMIT ?",
 			user.ID,
 			user.ID,

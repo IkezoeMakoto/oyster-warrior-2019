@@ -16,7 +16,7 @@ import (
 	"strconv"
 	//"strings"
 	"time"
-
+	"sort"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
@@ -61,6 +61,19 @@ const (
 
 	BcryptCost = 10
 )
+
+type itemSlices []Item
+func (i itemSlices) Len() int {
+	return len(i)
+}
+
+func (i itemSlices) Swap(j, k int) {
+	i[j], i[k] = i[k], i[j]
+}
+
+func (i itemSlices) Less(j, k int) bool {
+	return i[j].CreatedAt.After(i[k].CreatedAt)
+}
 
 var (
 	templates *template.Template
@@ -1016,7 +1029,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tx := dbx.MustBegin()
-	items := []Item{}
+	items := itemSlices{}
 	users := map[int64]UserSimple{}
 	if itemID > 0 && createdAt > 0 {
 		// ページネーションをしたときに必要なデータを取得
@@ -1105,6 +1118,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			users[u.ID] = u
 		}
 	}
+	sort.Sort(items)
 
 	itemDetails := []ItemDetail{}
 	for _, item := range items {

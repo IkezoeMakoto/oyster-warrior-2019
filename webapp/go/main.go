@@ -1026,20 +1026,21 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			"FROM `items` " +
 			"INNER JOIN `users` on `items`.seller_id = `users`.id " +
 			"WHERE (`items`.seller_id = ? OR `items`.buyer_id = ?) " +
-			"AND `items`.status IN (?,?,?,?,?) " +
-			"AND (`items`.created_at < ?  OR (`items`.created_at <= ? AND `items`.id < ?)) " +
-			"ORDER BY `items`.created_at DESC, `items`.id " +
+			// "AND `items`.status IN (?,?,?,?,?) " +
+			// "AND (`items`.created_at < ?  OR (`items`.created_at <= ? AND `items`.id < ?)) " +
+			// "ORDER BY `items`.created_at DESC, `items`.id " +
+			"ORDER BY `items`.id " +
 			"DESC LIMIT ?",
 			user.ID,
 			user.ID,
-			ItemStatusOnSale,
-			ItemStatusTrading,
-			ItemStatusSoldOut,
-			ItemStatusCancel,
-			ItemStatusStop,
-			time.Unix(createdAt, 0),
-			time.Unix(createdAt, 0),
-			itemID,
+			// ItemStatusOnSale,
+			// ItemStatusTrading,
+			// ItemStatusSoldOut,
+			// ItemStatusCancel,
+			// ItemStatusStop,
+			// time.Unix(createdAt, 0),
+			// time.Unix(createdAt, 0),
+			// itemID,
 			TransactionsPerPage+1,
 		)
 		if err != nil {
@@ -1070,16 +1071,17 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			"FROM `items` " +
 			"INNER JOIN `users` on `items`.seller_id = `users`.id " +
 			"WHERE (`items`.seller_id = ? OR `items`.buyer_id = ?) " +
-			"AND `items`.status IN (?,?,?,?,?) " +
-			"ORDER BY `items`.created_at DESC, `items`.id DESC " +
+			// "AND `items`.status IN (?,?,?,?,?) " +
+			// "ORDER BY `items`.created_at DESC, `items`.id DESC " +
+			"ORDER BY `items`.id DESC " +
 			"LIMIT ?",
 			user.ID,
 			user.ID,
-			ItemStatusOnSale,
-			ItemStatusTrading,
-			ItemStatusSoldOut,
-			ItemStatusCancel,
-			ItemStatusStop,
+			// ItemStatusOnSale,
+			// ItemStatusTrading,
+			// ItemStatusSoldOut,
+			// ItemStatusCancel,
+			// ItemStatusStop,
 			TransactionsPerPage+1,
 		)
 		if err != nil {

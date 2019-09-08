@@ -322,37 +322,69 @@ func main() {
 	mux := goji.NewMux()
 
 	// API
+	// 初期化処理
 	mux.HandleFunc(pat.Post("/initialize"), postInitialize)
+	// アイテム（イス）取得API 新着一覧
 	mux.HandleFunc(pat.Get("/new_items.json"), getNewItems)
+	// アイテム（イス）取得API カテゴリ毎新着一覧
 	mux.HandleFunc(pat.Get("/new_items/:root_category_id.json"), getNewCategoryItems)
+	// アイテム（イス）取得API 取引一覧
 	mux.HandleFunc(pat.Get("/users/transactions.json"), getTransactions)
+	// アイテム（イス）取得API ユーザ毎一覧
 	mux.HandleFunc(pat.Get("/users/:user_id.json"), getUserItems)
+	// アイテム（イス）取得API 商品詳細
 	mux.HandleFunc(pat.Get("/items/:item_id.json"), getItem)
+	// アイテム（イス） 商品編集
 	mux.HandleFunc(pat.Post("/items/edit"), postItemEdit)
+	// アイテム（イス） 購入
 	mux.HandleFunc(pat.Post("/buy"), postBuy)
+	// アイテム（イス） 売却
 	mux.HandleFunc(pat.Post("/sell"), postSell)
+	// アイテム（イス） 配送処理
 	mux.HandleFunc(pat.Post("/ship"), postShip)
+	// アイテム（イス） 配送完了
 	mux.HandleFunc(pat.Post("/ship_done"), postShipDone)
+	// アイテム（イス） 配送処理
 	mux.HandleFunc(pat.Post("/complete"), postComplete)
+	// アイテム（イス） 配送
 	mux.HandleFunc(pat.Get("/transactions/:transaction_evidence_id.png"), getQRCode)
+	// bump
 	mux.HandleFunc(pat.Post("/bump"), postBump)
+	// 設定
 	mux.HandleFunc(pat.Get("/settings"), getSettings)
+	// ログイン
 	mux.HandleFunc(pat.Post("/login"), postLogin)
+	// 新規登録
 	mux.HandleFunc(pat.Post("/register"), postRegister)
+	// レポート
 	mux.HandleFunc(pat.Get("/reports.json"), getReports)
+
 	// Frontend
+	// TOP 画面
 	mux.HandleFunc(pat.Get("/"), getIndex)
+	// ログイン画面
 	mux.HandleFunc(pat.Get("/login"), getIndex)
+	// 新規登録画面
 	mux.HandleFunc(pat.Get("/register"), getIndex)
+	// タイムライン
 	mux.HandleFunc(pat.Get("/timeline"), getIndex)
+	// カテゴリ毎のアイテム（イス）
 	mux.HandleFunc(pat.Get("/categories/:category_id/items"), getIndex)
+	// 売却画面
 	mux.HandleFunc(pat.Get("/sell"), getIndex)
+	// アイテム（イス）詳細画面
 	mux.HandleFunc(pat.Get("/items/:item_id"), getIndex)
+	// アイテム（イス）編集画面
 	mux.HandleFunc(pat.Get("/items/:item_id/edit"), getIndex)
+	// アイテム（イス）購入画面
 	mux.HandleFunc(pat.Get("/items/:item_id/buy"), getIndex)
+	// アイテム（イス）完了画面
 	mux.HandleFunc(pat.Get("/buy/complete"), getIndex)
+	// アイテム（イス）取引詳細画面
 	mux.HandleFunc(pat.Get("/transactions/:transaction_id"), getIndex)
+	// ユーザ情報詳細画面
 	mux.HandleFunc(pat.Get("/users/:user_id"), getIndex)
+	// ユーザ情報設定画面
 	mux.HandleFunc(pat.Get("/users/setting"), getIndex)
 	// Assets
 	mux.Handle(pat.Get("/*"), http.FileServer(http.Dir("../public")))

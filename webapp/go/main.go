@@ -1027,8 +1027,8 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			"INNER JOIN `users` on `items`.seller_id = `users`.id " +
 			"WHERE (`items`.seller_id = ? OR `items`.buyer_id = ?) " +
 			"AND `items`.status IN (?,?,?,?,?) " +
-			"AND (item_created_at < ?  OR (item_created_at <= ? AND item_id < ?)) " +
-			"ORDER BY item_created_at DESC, item_id " +
+			"AND (`items`.created_at < ?  OR (`items`.created_at <= ? AND item_id < ?)) " +
+			"ORDER BY `items`.created_at DESC, item_id " +
 			"DESC LIMIT ?",
 			user.ID,
 			user.ID,
@@ -1071,7 +1071,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			"INNER JOIN `users` on `items`.seller_id = `users`.id " +
 			"WHERE (`items`.seller_id = ? OR `items`.buyer_id = ?) " +
 			"AND `items`.status IN (?,?,?,?,?) " +
-			"ORDER BY item_created_at DESC, item_id DESC " +
+			"ORDER BY `items`.created_at DESC, item_id DESC " +
 			"LIMIT ?",
 			user.ID,
 			user.ID,

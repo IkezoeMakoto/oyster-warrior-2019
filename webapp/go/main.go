@@ -2424,13 +2424,13 @@ func postRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), BcryptCost)
-	hashedPassword := md5.Sum([]byte(password))
-	//if err != nil {
-	//	log.Print(err)
-	//
-	//	outputErrorMsg(w, http.StatusInternalServerError, "error")
-	//	return
-	//}
+	hashedPassword, err := fmt.Printf("%x", md5.Sum([]byte(password)))
+	if err != nil {
+		log.Print(err)
+
+		outputErrorMsg(w, http.StatusInternalServerError, "error")
+		return
+	}
 
 	result, err := dbx.Exec("INSERT INTO `users` (`account_name`, `hashed_password`, `address`) VALUES (?, ?, ?)",
 		accountName,

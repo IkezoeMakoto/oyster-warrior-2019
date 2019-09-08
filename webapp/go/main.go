@@ -2375,21 +2375,16 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//err = bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
-	h := md5.New()
-	hash := fmt.Sprintf("%x", h.Sum([]byte(password)))
-	pass :=fmt.Sprintf("%x", u.HashedPassword)
-
-	log.Print("前")
-	log.Print(string(hash))
-	log.Print(string(pass))
-	log.Print(hash)
-	log.Print(pass)
+	// h := md5.New()
+	hash := fmt.Sprintf("%x", md5.Sum([]byte(password)))
+	pass := fmt.Sprintf("%x", u.HashedPassword)
 
 	if pass != hash {
 
-		log.Println("後")
-		log.Println(hash)
-		log.Println(pass)
+		log.Println("string")
+		log.Print("hash:" + hash)
+		log.Print("pass:" + pass)
+		log.Print("password:" + password)
 		outputErrorMsg(w, http.StatusUnauthorized, "アカウント名かパスワードが間違えています")
 		return
 	}

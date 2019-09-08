@@ -72,7 +72,7 @@ func (i itemSlices) Swap(j, k int) {
 }
 
 func (i itemSlices) Less(j, k int) bool {
-	return i[j].CreatedAt.After(i[k].CreatedAt)
+	return i[k].CreatedAt.After(i[j].CreatedAt)
 }
 
 var (

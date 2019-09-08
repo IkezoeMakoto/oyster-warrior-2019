@@ -1022,8 +1022,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		// ページネーションをしたときに必要なデータを取得
 		// paging
 		rows, err := tx.Queryx("SELECT items.id as item_id,items.seller_id,items.buyer_id,items.status,items.name,items.price,items.description,items.image_name,items.category_id,items.created_at as item_created_at,items.updated_at," +
-			"users.id as user_id, users.account_name, users.num_sell_items" +
-			"SELECT * " +
+			"users.id as user_id, users.account_name, users.num_sell_items " +
 			"FROM `items` " +
 			"INNER JOIN `users` on `items`.seller_id = `users`.id " +
 			"WHERE (`seller_id` = ? OR `buyer_id` = ?) " +

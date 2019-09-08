@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	//"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -528,17 +529,16 @@ func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err
 }
 
 func getCategoryByID(q sqlx.Queryer, categoryID int) (category Category, err error) {
-	// カテゴリの情報を取得
-	err = sqlx.Get(q, &category, "SELECT * FROM `categories` WHERE `id` = ?", categoryID)
-	// もし、中カテゴリだったら、大カテゴリの情報を取得する
-	if category.ParentID != 0 {
-		parentCategory, err := getCategoryByID(q, category.ParentID)
-		if err != nil {
-			return category, err
+	var categories []Category
+	categories = getMyCategorys()
+
+	for _, categoryStruct := range categories {
+		if categoryID == categoryStruct.ID {
+			return category, nil
 		}
-		category.ParentCategoryName = parentCategory.CategoryName
 	}
-	return category, err
+
+	return Category{}, err
 }
 
 func getConfigByName(name string) (string, error) {

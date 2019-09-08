@@ -2376,8 +2376,8 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 
 	//err = bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
 	h := md5.New()
-	hash,err := fmt.Printf("%s", h.Sum([]byte(password)))
-	pass,err2 :=fmt.Printf("%s", u.HashedPassword)
+	hash,err := fmt.Printf("%x", h.Sum([]byte(password)))
+	pass,err2 :=fmt.Printf("%x", u.HashedPassword)
 
 	log.Fatalf("前")
 	log.Fatalf(string(hash))

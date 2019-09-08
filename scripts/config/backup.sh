@@ -18,5 +18,5 @@ BACKUP_DIR=$(cd $(dirname $0);cd ../..;pwd)/backup
 #echo "rsync -R $1 $BACKUP_DIR"
 #echo "ln -snf $BACKUP_DIR$1 $1"
 
-rsync -R $1 $BACKUP_DIR
+#rsync -R $1 $BACKUP_DIR
 ln -snf $BACKUP_DIR$1 $1

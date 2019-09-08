@@ -2379,15 +2379,15 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 	hash,err := fmt.Printf("%x", h.Sum([]byte(password)))
 	pass,err2 :=fmt.Printf("%x", u.HashedPassword)
 
-	log.Println("前")
-	log.Println(hash)
-	log.Println(pass)
+	fmt.Println("前")
+	fmt.Println(hash)
+	fmt.Println(pass)
 
 	if pass != hash {
 
-		log.Println("後")
-		log.Println(hash)
-		log.Println(pass)
+		fmt.Println("後")
+		fmt.Println(hash)
+		fmt.Println(pass)
 		outputErrorMsg(w, http.StatusUnauthorized, "アカウント名かパスワードが間違えています")
 		return
 	}

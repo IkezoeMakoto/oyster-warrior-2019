@@ -168,7 +168,7 @@ type Shipping struct {
 
 /////////////////////////////////////////
 //category をシングルトン化
-var MyCategorys [] Category
+var MyCategorys []Category
 
 func getMyCategorys() []Category {
 
@@ -534,7 +534,7 @@ func getCategoryByID(q sqlx.Queryer, categoryID int) (category Category, err err
 
 	for _, categoryStruct := range categories {
 		if categoryID == categoryStruct.ID {
-			return category, nil
+			return categoryStruct, nil
 		}
 	}
 

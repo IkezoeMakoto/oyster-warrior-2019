@@ -1,7 +1,7 @@
 #!/bin/bash -eu
 
 sudo su -l isucon -c '
-BASE_DIR=/home/isucon/webapp
+BASE_DIR=/home/isucon/isucari
 
 ### code fetch ###
 cd ${BASE_DIR}; git pull;

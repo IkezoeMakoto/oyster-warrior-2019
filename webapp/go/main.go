@@ -208,11 +208,11 @@ func getMyCategorys() []Category {
 
 	//折りたたみ椅子
 	MyCategorys = append(MyCategorys, Category{40,0,"折りたたみ椅子", ""})
-	MyCategorys = append(MyCategorys, Category{41,40,"パイプ椅子", "40"})
-	MyCategorys = append(MyCategorys, Category{42,40,"木製折りたたみ椅子", "40"})
-	MyCategorys = append(MyCategorys, Category{43,40,"キッチンチェア", "40"})
-	MyCategorys = append(MyCategorys, Category{44,40,"アウトドアチェア", "40"})
-	MyCategorys = append(MyCategorys, Category{45,40,"作業椅子", "40"})
+	MyCategorys = append(MyCategorys, Category{41,40,"パイプ椅子", "折りたたみ椅子"})
+	MyCategorys = append(MyCategorys, Category{42,40,"木製折りたたみ椅子", "折りたたみ椅子"})
+	MyCategorys = append(MyCategorys, Category{43,40,"キッチンチェア", "折りたたみ椅子"})
+	MyCategorys = append(MyCategorys, Category{44,40,"アウトドアチェア", "折りたたみ椅子"})
+	MyCategorys = append(MyCategorys, Category{45,40,"作業椅子", "折りたたみ椅子"})
 
 	//ベンチ
 	MyCategorys = append(MyCategorys, Category{50, 0,"ベンチ", ""})

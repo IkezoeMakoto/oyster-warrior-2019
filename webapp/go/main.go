@@ -1770,6 +1770,8 @@ func postShip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	imgName := fmt.Sprintf("%d.png", transactionEvidence.ID)
+	err = ioutil.WriteFile(fmt.Sprintf("../public/transactions/%s", imgName), img, 0644)
 	_, err = tx.Exec("UPDATE `shippings` SET `status` = ?, `img_binary` = ?, `updated_at` = ? WHERE `transaction_evidence_id` = ?",
 		ShippingsStatusWaitPickup,
 		img,

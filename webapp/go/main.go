@@ -165,6 +165,76 @@ type Shipping struct {
 	UpdatedAt             time.Time `json:"-" db:"updated_at"`
 }
 
+/////////////////////////////////////////
+//category をシングルトン化
+var MyCategorys [] Category
+
+func getMyCategorys() []Category {
+
+	if len(MyCategorys) > 0 {
+		return MyCategorys
+	}
+	//ソファー
+	MyCategorys = append(MyCategorys, Category{1,0,"ソファー", ""})
+	MyCategorys = append(MyCategorys, Category{2,1,"一人掛けソファー", "ソファー"})
+	MyCategorys = append(MyCategorys, Category{3,1,"二人掛けソファー", "ソファー"})
+	MyCategorys = append(MyCategorys, Category{4,1,"コーナーソファー", "ソファー"})
+	MyCategorys = append(MyCategorys, Category{5,1,"二段ソファー", "ソファー"})
+	MyCategorys = append(MyCategorys, Category{6,1,"ソファーベッド", "ソファー"})
+
+	//家庭用チェア
+	MyCategorys = append(MyCategorys, Category{10, 0,"家庭用チェア", ""})
+	MyCategorys = append(MyCategorys, Category{11,10,"スツール", "家庭用チェア"})
+	MyCategorys = append(MyCategorys, Category{12,10,"クッションスツール", "家庭用チェア"})
+	MyCategorys = append(MyCategorys, Category{13,10,"ダイニングチェア", "家庭用チェア"})
+	MyCategorys = append(MyCategorys, Category{14,10,"リビングチェア", "家庭用チェア"})
+	MyCategorys = append(MyCategorys, Category{15,10,"カウンターチェア", "家庭用チェア"})
+
+	//キッズチェア
+	MyCategorys = append(MyCategorys, Category{20, 0,"キッズチェア", ""})
+	MyCategorys = append(MyCategorys, Category{21,20,"学習チェア", "キッズチェア"})
+	MyCategorys = append(MyCategorys, Category{22,20,"ベビーソファ", "キッズチェア"})
+	MyCategorys = append(MyCategorys, Category{23,20,"キッズハイチェア", "キッズチェア"})
+	MyCategorys = append(MyCategorys, Category{24,20,"テーブルチェア", "キッズチェア"})
+
+	//オフィスチェア
+	MyCategorys = append(MyCategorys, Category{30, 0,"オフィスチェア", ""})
+	MyCategorys = append(MyCategorys, Category{31,30,"デスクチェア", "オフィスチェア"})
+	MyCategorys = append(MyCategorys, Category{32,30,"ビジネスチェア", "オフィスチェア"})
+	MyCategorys = append(MyCategorys, Category{33,30,"回転チェア", "オフィスチェア"})
+	MyCategorys = append(MyCategorys, Category{34,30,"リクライニングチェア", "オフィスチェア"})
+	MyCategorys = append(MyCategorys, Category{35,30,"投擲用椅子", "オフィスチェア"})
+
+	//折りたたみ椅子
+	MyCategorys = append(MyCategorys, Category{40,0,"折りたたみ椅子", ""})
+	MyCategorys = append(MyCategorys, Category{41,40,"パイプ椅子", "40"})
+	MyCategorys = append(MyCategorys, Category{42,40,"木製折りたたみ椅子", "40"})
+	MyCategorys = append(MyCategorys, Category{43,40,"キッチンチェア", "40"})
+	MyCategorys = append(MyCategorys, Category{44,40,"アウトドアチェア", "40"})
+	MyCategorys = append(MyCategorys, Category{45,40,"作業椅子", "40"})
+
+	//ベンチ
+	MyCategorys = append(MyCategorys, Category{50, 0,"ベンチ", ""})
+	MyCategorys = append(MyCategorys, Category{51,50,"一人掛けベンチ", "ベンチ"})
+	MyCategorys = append(MyCategorys, Category{52,50,"二人掛けベンチ", "ベンチ"})
+	MyCategorys = append(MyCategorys, Category{53,50,"アウトドア用ベンチ", "ベンチ"})
+	MyCategorys = append(MyCategorys, Category{54,50,"収納付きベンチ", "ベンチ"})
+	MyCategorys = append(MyCategorys, Category{55,50,"背もたれ付きベンチ", "ベンチ"})
+	MyCategorys = append(MyCategorys, Category{56,50,"ベンチマーク", "ベンチ"})
+
+	//座椅子
+	MyCategorys = append(MyCategorys, Category{60, 0,"座椅子", ""})
+	MyCategorys = append(MyCategorys, Category{61,60,"和風座椅子", "座椅子"})
+	MyCategorys = append(MyCategorys, Category{62,60,"高座椅子", "座椅子"})
+	MyCategorys = append(MyCategorys, Category{63,60,"ゲーミング座椅子", "座椅子"})
+	MyCategorys = append(MyCategorys, Category{64,60,"ロッキングチェア", "座椅子"})
+	MyCategorys = append(MyCategorys, Category{65,60,"座布団", "座椅子"})
+	MyCategorys = append(MyCategorys, Category{66,60,"空気椅子", "座椅子"})
+
+	return MyCategorys
+}
+/////////////////////////////////////////
+
 type Category struct {
 	ID                 int    `json:"id" db:"id"`
 	ParentID           int    `json:"parent_id" db:"parent_id"`
@@ -293,6 +363,9 @@ func main() {
 		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
 	}()
 	/////////////////////////////////////////
+
+	//カテゴリをシングルトンで持つ
+	getMyCategorys()
 
 	host := os.Getenv("MYSQL_HOST")
 	if host == "" {

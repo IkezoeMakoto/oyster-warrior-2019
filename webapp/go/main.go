@@ -537,6 +537,7 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 }
 
 func getNewItems(w http.ResponseWriter, r *http.Request) {
+	// URLのバリデーション
 	query := r.URL.Query()
 	itemIDStr := query.Get("item_id")
 	var itemID int64
@@ -561,6 +562,7 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 
 	items := []Item{}
 	if itemID > 0 && createdAt > 0 {
+		// ページネーションでページを遷移したときに必要なデータを取得
 		// paging
 		err := dbx.Select(&items,
 			"SELECT * FROM `items` WHERE `status` IN (?,?) AND (`created_at` < ?  OR (`created_at` <= ? AND `id` < ?)) ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
@@ -577,6 +579,7 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		// 初期ページに表示するときに必要なデータを取得
 		// 1st page
 		err := dbx.Select(&items,
 			"SELECT * FROM `items` WHERE `status` IN (?,?) ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
@@ -593,11 +596,13 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
+		// アイテム（イス）の売り手の情報を取得
 		seller, err := getUserSimpleByID(dbx, item.SellerID)
 		if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "seller not found")
 			return
 		}
+		// アイテム（イス）のカテゴリ情報を取得
 		category, err := getCategoryByID(dbx, item.CategoryID)
 		if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "category not found")
@@ -677,7 +682,6 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	//
 	var inQuery string
 	var inArgs []interface{}
 	if itemID > 0 && createdAt > 0 {
@@ -734,14 +738,15 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
+		// アイテム（イス）の売り手の情報を取得
 		seller, err := getUserSimpleByID(dbx, item.SellerID)
 		if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "seller not found")
 			return
 		}
+		// アイテム（イス）のカテゴリ情報を取得
 		category, err := getCategoryByID(dbx, item.CategoryID)
 		if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "category not found")
@@ -780,6 +785,7 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserItems(w http.ResponseWriter, r *http.Request) {
+	// URL のバリデーション
 	userIDStr := pat.Param(r, "user_id")
 	userID, err := strconv.ParseInt(userIDStr, 10, 64)
 	if err != nil || userID <= 0 {
@@ -787,12 +793,14 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// URL に指定したuserID を取得する
 	userSimple, err := getUserSimpleByID(dbx, userID)
 	if err != nil {
 		outputErrorMsg(w, http.StatusNotFound, "user not found")
 		return
 	}
 
+	// URL のバリデーション
 	query := r.URL.Query()
 	itemIDStr := query.Get("item_id")
 	var itemID int64
@@ -803,7 +811,6 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 	createdAtStr := query.Get("created_at")
 	var createdAt int64
 	if createdAtStr != "" {
@@ -816,6 +823,7 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 
 	items := []Item{}
 	if itemID > 0 && createdAt > 0 {
+		// 初期ページに表示するときに必要なデータを取得
 		// paging
 		err := dbx.Select(&items,
 			"SELECT * FROM `items` WHERE `seller_id` = ? AND `status` IN (?,?,?) AND (`created_at` < ?  OR (`created_at` <= ? AND `id` < ?)) ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
@@ -834,6 +842,7 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		// ページネーションでページを遷移したときに必要なデータを取得
 		// 1st page
 		err := dbx.Select(&items,
 			"SELECT * FROM `items` WHERE `seller_id` = ? AND `status` IN (?,?,?) ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
@@ -852,6 +861,7 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
+		// アイテム（イス）のカテゴリ情報を取得
 		category, err := getCategoryByID(dbx, item.CategoryID)
 		if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "category not found")
@@ -1088,6 +1098,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 }
 
 func getItem(w http.ResponseWriter, r *http.Request) {
+	// URL のバリデーション
 	itemIDStr := pat.Param(r, "item_id")
 	itemID, err := strconv.ParseInt(itemIDStr, 10, 64)
 	if err != nil || itemID <= 0 {
@@ -1095,12 +1106,14 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// ユーザ情報を取得
 	user, errCode, errMsg := getUser(r)
 	if errMsg != "" {
 		outputErrorMsg(w, errCode, errMsg)
 		return
 	}
 
+	// アイテム（イス）の情報を取得する
 	item := Item{}
 	err = dbx.Get(&item, "SELECT * FROM `items` WHERE `id` = ?", itemID)
 	if err == sql.ErrNoRows {
@@ -1113,12 +1126,14 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// アイテム（イス）のカテゴリ情報を取得
 	category, err := getCategoryByID(dbx, item.CategoryID)
 	if err != nil {
 		outputErrorMsg(w, http.StatusNotFound, "category not found")
 		return
 	}
 
+	// アイテム（イス）の売り手の情報を取得
 	seller, err := getUserSimpleByID(dbx, item.SellerID)
 	if err != nil {
 		outputErrorMsg(w, http.StatusNotFound, "seller not found")
@@ -1144,7 +1159,9 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: item.CreatedAt.Unix(),
 	}
 
+	// 買い手がいた場合
 	if (user.ID == item.SellerID || user.ID == item.BuyerID) && item.BuyerID != 0 {
+		// 買い手の情報を取得する
 		buyer, err := getUserSimpleByID(dbx, item.BuyerID)
 		if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "buyer not found")
@@ -1153,6 +1170,7 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 		itemDetail.BuyerID = item.BuyerID
 		itemDetail.Buyer = &buyer
 
+		// 取引情報を取得する
 		transactionEvidence := TransactionEvidence{}
 		err = dbx.Get(&transactionEvidence, "SELECT * FROM `transaction_evidences` WHERE `item_id` = ?", item.ID)
 		if err != nil && err != sql.ErrNoRows {
@@ -1162,7 +1180,9 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// すでに取引済だった場合
 		if transactionEvidence.ID > 0 {
+			// 配送情報を取得する
 			shipping := Shipping{}
 			err = dbx.Get(&shipping, "SELECT * FROM `shippings` WHERE `transaction_evidence_id` = ?", transactionEvidence.ID)
 			if err == sql.ErrNoRows {
